@@ -1,25 +1,49 @@
 import socket
 import threading
+import os
 from protocol import send_json, recv_json
 
 HOST="127.0.0.1"
 PORT=5000
 
 def receive(sock):
+
     while True:
+
         data=recv_json(sock)
 
         if not data:
             break
 
-        if data["type"]=="message":
+        msg_type=data.get("type")
+
+        if msg_type=="message":
             print(f"[{data['sender']}]: {data['content']}")
 
-        elif data["type"]=="private":
+        elif msg_type=="private":
             print(f"[PRIVATE from {data['from']}]: {data['content']}")
 
-        elif data["type"]=="info":
+        elif msg_type=="info":
             print("[INFO]",data["message"])
+
+        elif msg_type=="file":
+
+            filename="received_files/"+data["filename"]
+            filesize=data["filesize"]
+
+            remaining=filesize
+
+            with open(filename,"wb") as f:
+
+                while remaining>0:
+
+                    chunk=sock.recv(min(4096,remaining))
+
+                    f.write(chunk)
+
+                    remaining-=len(chunk)
+
+            print("[FILE RECEIVED]",filename)
 
 def start_client():
 
@@ -42,6 +66,7 @@ def start_client():
         msg=input()
 
         if msg.startswith("/private"):
+
             _,to_user,content=msg.split(" ",2)
 
             send_json(sock,{
@@ -50,7 +75,27 @@ def start_client():
                 "content":content
             })
 
+        elif msg.startswith("/file"):
+
+            _,filepath=msg.split(" ",1)
+
+            filesize=os.path.getsize(filepath)
+            filename=os.path.basename(filepath)
+
+            send_json(sock,{
+                "type":"file",
+                "filename":filename,
+                "filesize":filesize,
+                "room":room
+            })
+
+            with open(filepath,"rb") as f:
+
+                while chunk:=f.read(4096):
+                    sock.sendall(chunk)
+
         else:
+
             send_json(sock,{
                 "type":"message",
                 "room":room,
