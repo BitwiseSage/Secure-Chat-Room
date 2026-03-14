@@ -1,4 +1,5 @@
 import socket
+import threading
 
 HOST = "0.0.0.0"
 PORT = 5000
@@ -12,3 +13,6 @@ print("Server started on port", PORT)
 while True:
     client, addr = server.accept()
     print("Client connected:", addr)
+
+def handle_client(client):
+    print("Handling new client")
