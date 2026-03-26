@@ -7,7 +7,7 @@ from protocol import send_json
 HOST = "127.0.0.1"   # change if server is on another machine
 PORT = 5000
 
-NUM_CLIENTS = 20     # try 5, 10, 20, 50
+NUM_CLIENTS = 10     # try 5, 10, 20, 50
 
 connected_clients = []
 success_count = 0
