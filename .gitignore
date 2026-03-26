@@ -1,4 +1,17 @@
+# Python cache files
 __pycache__/
 *.pyc
+
+# SSL certificates and keys (generated locally)
 *.pem
+
+# Runtime-generated folders
 received_files/
+
+# Performance & ordering logs (generated during testing)
+message_order_log.txt
+performance_log.txt
+
+# Optional: system files
+.DS_Store
+Thumbs.db
