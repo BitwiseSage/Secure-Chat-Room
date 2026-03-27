@@ -5,14 +5,17 @@ import os
 from protocol import send_json, recv_json
 from encryption_utils import encrypt_message, decrypt_message, set_key
 
-HOST = "172.20.10.2"   # e.g. "10.25.69.26"
+HOST = "172.20.10.5"   # Change to server IP if needed
 PORT = 5000
+
 
 def receive_messages(sock):
     while True:
         try:
             data = recv_json(sock)
+
             if not data:
+                print("Disconnected from server.")
                 break
 
             msg_type = data.get("type")
@@ -31,35 +34,51 @@ def receive_messages(sock):
                 print(f"[INFO]: {data['message']}")
 
             elif msg_type == "file":
-                filename = "received_files/" + data["filename"]
+                filename = data["filename"]
                 filesize = data["filesize"]
+
+                os.makedirs("received_files", exist_ok=True)
+
+                filepath = os.path.join("received_files", filename)
+
                 remaining = filesize
 
-                with open(filename, "wb") as f:
+                with open(filepath, "wb") as f:
                     while remaining > 0:
                         chunk = sock.recv(min(4096, remaining))
+                        if not chunk:
+                            break
                         f.write(chunk)
                         remaining -= len(chunk)
 
-                print(f"[FILE RECEIVED]: {filename}")
+                print(f"[FILE RECEIVED]: {filepath}")
 
-        except:
+        except Exception as e:
+            print("Connection closed:", e)
             break
 
 
 def start_client():
-    # SSL setup
-    key =   b'oGk8-xGWT0PhL0ek9rhQ1xgGjkVaawX8EhAHfy5bHmQ='
+    # Encryption key (must match server key)
+    key = b'7S357ZthynRtFopFFKIton9Ke1PzhJkIMwK7M-Rjvy4='
     set_key(key)
+
     context = ssl.create_default_context()
     context.check_hostname = False
     context.verify_mode = ssl.CERT_NONE
 
-    raw_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    secure_sock = context.wrap_socket(raw_sock)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    secure_sock = context.wrap_socket(sock)
+
     secure_sock.connect((HOST, PORT))
 
-    threading.Thread(target=receive_messages, args=(secure_sock,), daemon=True).start()
+    print("Connected to server.")
+
+    threading.Thread(
+        target=receive_messages,
+        args=(secure_sock,),
+        daemon=True
+    ).start()
 
     username = input("Enter username: ")
     room = input("Enter room: ")
@@ -71,52 +90,84 @@ def start_client():
     })
 
     while True:
-        msg = input()
+        try:
+            msg = input()
 
-        # Private message
-        if msg.startswith("/private"):
-            _, to_user, content = msg.split(" ", 2)
-            send_json(secure_sock, {
-                "type": "private",
-                "to": to_user,
-                "content": content
-            })
+            if msg.startswith("/private"):
+                parts = msg.split(" ", 2)
 
-        # Secret encrypted message
-        elif msg.startswith("/secret"):
-            _, to_user, content = msg.split(" ", 2)
-            encrypted_content = encrypt_message(content)
+                if len(parts) < 3:
+                    print("Usage: /private username message")
+                    continue
 
-            send_json(secure_sock, {
-                "type": "secret",
-                "to": to_user,
-                "content": encrypted_content
-            })
+                _, to_user, content = parts
 
-        # File sending
-        elif msg.startswith("/file"):
-            _, filepath = msg.split(" ", 1)
-            filesize = os.path.getsize(filepath)
-            filename = os.path.basename(filepath)
+                send_json(secure_sock, {
+                    "type": "private",
+                    "to": to_user,
+                    "content": content
+                })
 
-            send_json(secure_sock, {
-                "type": "file",
-                "filename": filename,
-                "filesize": filesize,
-                "room": room
-            })
+            elif msg.startswith("/secret"):
+                parts = msg.split(" ", 2)
 
-            with open(filepath, "rb") as f:
-                while chunk := f.read(4096):
-                    secure_sock.sendall(chunk)
+                if len(parts) < 3:
+                    print("Usage: /secret username message")
+                    continue
 
-        # Normal room message
-        else:
-            send_json(secure_sock, {
-                "type": "message",
-                "room": room,
-                "content": msg
-            })
+                _, to_user, content = parts
+
+                encrypted = encrypt_message(content)
+
+                send_json(secure_sock, {
+                    "type": "secret",
+                    "to": to_user,
+                    "content": encrypted
+                })
+
+            elif msg.startswith("/file"):
+                parts = msg.split(" ", 1)
+
+                if len(parts) < 2:
+                    print("Usage: /file filename")
+                    continue
+
+                filepath = parts[1]
+
+                if not os.path.exists(filepath):
+                    print("File not found.")
+                    continue
+
+                filesize = os.path.getsize(filepath)
+                filename = os.path.basename(filepath)
+
+                send_json(secure_sock, {
+                    "type": "file",
+                    "filename": filename,
+                    "filesize": filesize,
+                    "room": room
+                })
+
+                with open(filepath, "rb") as f:
+                    while True:
+                        chunk = f.read(4096)
+                        if not chunk:
+                            break
+                        secure_sock.sendall(chunk)
+
+                print(f"[FILE SENT]: {filename}")
+
+            else:
+                send_json(secure_sock, {
+                    "type": "message",
+                    "room": room,
+                    "content": msg
+                })
+
+        except KeyboardInterrupt:
+            print("\nDisconnected.")
+            secure_sock.close()
+            break
 
 
 if __name__ == "__main__":
