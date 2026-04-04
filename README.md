@@ -1,268 +1,325 @@
-Secure Multi-Room Chat System with SSL & Performance Evaluation
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Socket](https://img.shields.io/badge/Socket-TCP-green)
+![Security](https://img.shields.io/badge/Security-TLS-orange)
+![Encryption](https://img.shields.io/badge/Encryption-Fernet-purple)
+![Status](https://img.shields.io/badge/Status-Completed-success)
 
-Computer Networks Mini Project — Socket Programming
+#  Secure Multi-Room Chat System
 
-Overview
+A secure and scalable multi-client chat application built using Python socket programming.  
+The system supports multiple chat rooms, private messaging, encrypted secret messages, file transfer, and SSL/TLS secure communication.
 
-This project implements a secure multi-client chat system using TCP socket programming with SSL/TLS encryption. The system supports multiple chat rooms, private messaging, encrypted secret messaging, file transfer, along with performance evaluation, scalability testing, message ordering guarantees, and failure handling mechanisms.
+---
 
-The system demonstrates:
+#  Overview
 
-Concurrent client handling
-Custom application-layer protocol design
-Secure communication using SSL/TLS
-Application-layer encryption (Fernet)
-Message ordering guarantees
-Scalability benchmarking
-Latency measurement
-Failure scenario handling
-Features
-Core Features (Deliverable 1)
-Multi-client concurrent chat server
-Multiple chat rooms
-Private messaging between users
-Encrypted secret messaging (Fernet)
-File transfer between clients
-SSL/TLS secured communication
-Custom JSON-based protocol
-Advanced Features (Deliverable 2)
-Performance Evaluation & Scalability Testing
+This project demonstrates the implementation of:
 
-Implemented using:
+- TCP Socket Programming
+- Multi-threaded client-server communication
+- Secure communication using SSL/TLS
+- Additional application-layer encryption using Fernet
+- Multi-room messaging system
+- File transfer between users
+- Performance monitoring and scalability testing
 
-load_test.py
+The application was developed as an academic networking project and focuses on both functionality and security.
 
-Measures:
+---
 
-concurrent connection handling
-connection success rate
-connection time
-server responsiveness under load
-Message Ordering Guarantee per Room
+#  Features
 
-Each message is assigned a sequence number:
+## Chat Features
+- Multi-client support
+- Multi-room chat system
+- Real-time message broadcasting
+- Private messaging between users
+- Secret encrypted messaging using Fernet
+- Join/leave room notifications
 
-MSG#1
-MSG#2
-MSG#3
+## Security Features
+- SSL/TLS encryption for all communication
+- Fernet-based encryption for secret messages
+- Prevents plaintext packet sniffing
+- Secure transmission of files and messages
 
-Stored inside:
+## 📁 File Transfer Features
+- Send files to users in the same room
+- Chunk-based file transmission
+- Automatically saves received files
 
-message_order_log.txt
+## Performance Features
+- Handles multiple clients concurrently
+- Thread-based architecture
+- Custom JSON message framing
+- Graceful client disconnection handling
+- Load testing and latency monitoring
 
-Ensures ordered delivery within chat rooms.
+---
 
-Failure Scenario Handling
+# System Architecture
 
-Server safely handles:
+```text
+                ┌───────────────────┐
+                │      Server       │
+                │  SSL/TLS Enabled  │
+                └─────────┬─────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+   ┌──────▼──────┐ ┌──────▼──────┐ ┌──────▼──────┐
+   │   Client 1  │ │   Client 2  │ │   Client 3  │
+   │ Room: room1 │ │ Room: room1 │ │ Room: room2 │
+   └─────────────┘ └─────────────┘ └─────────────┘
+```
 
-unexpected client disconnects
-invalid packets
-socket failures
-interrupted file transfers
+The server manages all connected clients, rooms, file transfers, and message broadcasting.
 
-Disconnected clients are removed automatically without crashing the server.
+---
 
-Broadcast Latency Measurement
+# Communication Flow
 
-Server measures broadcast latency during message delivery.
+1. Client connects securely to the server using SSL/TLS
+2. User joins a room
+3. Messages are sent using a custom JSON protocol
+4. Server broadcasts messages to all room members
+5. Secret messages are encrypted using Fernet
+6. Files are transferred in chunks
+7. Server maintains room and client information
 
-Used for:
+---
 
-performance comparison
-scalability evaluation
-optimization validation
-Optimization Techniques Implemented
+# 📂 Project Structure
 
-Includes:
+```text
+project/
+│
+├── server.py
+├── client.py
+├── protocol.py
+├── encryption_utils.py
+├── load_test.py
+│
+├── cert.pem
+├── key.pem
+│
+├── received_files/
+│
+├── assets/
+│   ├── server.png
+│   ├── client.png
+│   ├── wireshark.png
+│   ├── load_test.png
+│   └── optimization.png
+│
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
 
-Thread-per-client architecture
-Lock-based synchronization
-Chunk-based file transfer
-Broadcast exclusion optimization
-Structured JSON communication protocol
-Technologies Used
-Python
-TCP Socket Programming
-SSL/TLS Encryption
-Threading (Concurrency)
-JSON Protocol Design
-Cryptography (Fernet)
-Project Architecture
-Client
-   │
-   │ SSL Socket
-   ▼
-Server
-   │
-   ├── Room Manager
-   ├── Message Ordering System
-   ├── File Transfer Handler
-   ├── Private Messaging Handler
-   ├── Secret Encryption Layer
-   └── Performance Logger
-Running the Server
+---
 
-Start the server:
+# Technologies Used
 
+- Python 3.x
+- Socket Programming
+- SSL/TLS
+- threading
+- cryptography (Fernet)
+- JSON
+- Wireshark (for packet analysis)
+
+---
+
+# Setup Instructions
+
+## 1️) Clone the Repository
+
+```bash
+git clone https://github.com/BitwiseSage/Secure-Chat-Room.git
+cd Secure-Chat-Room
+```
+
+---
+
+## 2️) Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Example `requirements.txt`:
+
+```text
+cryptography
+```
+
+---
+
+## 3️) Generate SSL Certificate and Key
+
+Run the following command:
+
+```bash
+openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout key.pem
+```
+
+This generates:
+
+- `cert.pem`
+- `key.pem`
+
+
+---
+
+## 4️) Start the Server
+
+```bash
 python server.py
+```
 
 Expected output:
 
+```text
+Generated encryption key: b'...'
 Server running with SSL...
-Connection from ('client_ip', port)
-Running the Client
+```
 
-Start client:
+---
 
+## 5️) Start the Client
+
+```bash
 python client.py
+```
 
-Enter:
+---
 
-username
-room_name
-Available Commands
-Normal Room Message
-hello everyone
-Private Message
-/private username message
+# Available Commands
 
-Example:
-
-/private Alice hello
-Secret Encrypted Message
-/secret username message
+| Command | Description |
+|----------|-------------|
+| `hello` | Send normal message |
+| `/private username message` | Send private message |
+| `/secret username message` | Send encrypted secret message |
+| `/file path/to/file.txt` | Send file |
+| `/exit` | Disconnect from chat |
 
 Example:
 
-/secret Bob confidential text
+```text
+/private Manoj Hi there!
+/secret Arfan This is encrypted
+/file test.txt
+```
 
-Encrypted before transmission using Fernet symmetric encryption.
+---
 
-File Transfer
-/file filename.txt
+# Screenshots
 
-Example:
+## Server Running
 
-/file notes.txt
+![Server Running](assets/server.png)
 
-Received files stored inside:
+---
 
-received_files/
-Performance Testing
+## Client Chat Interface
 
-Run scalability benchmark:
 
-python load_test.py
 
-Example output:
+![Client Interface](assets/client.png)
 
-Clients requested: 20
-Clients connected: 19
-Connection success rate: 95%
-Total connection time: 1.659 seconds
-Message Ordering Log
+---
 
-Stored in:
+## Wireshark Packet Capture
 
-message_order_log.txt
+This screenshot proves that the communication is encrypted and no plaintext messages are visible.
 
-Example:
 
-[ROOM room1] MSG#1 Alice: Hello
-[ROOM room1] MSG#2 Bob: Hi
+![Wireshark Analysis](assets/wireshark.png)
 
-Ensures ordered delivery within rooms.
+✔ Only encrypted TLS traffic is visible.
 
-Failure Handling Demonstration
+---
 
-Server automatically handles:
+# Performance Testing
 
-unexpected disconnects
-invalid packets
-socket drops
+The server was tested with multiple concurrent clients using `load_test.py`.
 
-Example server output:
+## 🔹 Load Test Screenshot
 
-username disconnected
-Server Output Screenshots
 
-Add screenshots here:
+![Load Test](assets/load_test.png)
 
-docs/server_output.png
-docs/message_order_log.png
-docs/file_transfer_server.png
-docs/disconnect_handling.png
-Client Output Screenshots
+---
 
-Add screenshots here:
+## 🔹 Optimization / Scalability Screenshot
 
-docs/client_chat.png
-docs/private_message.png
-docs/secret_message.png
-docs/file_receive.png
-Performance Comparison Results
+The graph the indicates the scalability & Latency after optimization.
 
-Add scalability comparison screenshots here:
+![Optimization](assets/optimization.png)
 
-docs/load_test_5_clients.png
-docs/load_test_20_clients.png
-docs/load_test_50_clients.png
+---
 
-Example comparison table:
+# Sample Performance Results
 
-Clients	Success Rate	Connection Time
-5	XX%	X sec
-10	XX%	X sec
-20	XX%	X sec
-50	XX%	X sec
-Optimization Improvements Summary
-Optimization	Purpose
-Thread-per-client architecture	Enables concurrency
-Lock-based synchronization	Prevents race conditions
-Chunked file transfer	Efficient memory usage
-Room-based broadcasting	Reduces unnecessary traffic
-Sequence numbering	Ensures message ordering
-Latency measurement	Enables performance evaluation
-Project File Structure
-server.py
-client.py
-protocol.py
-encryption_utils.py
-file_transfer.py
-load_test.py
-cert.pem
-key.pem
-message_order_log.txt
-received_files/
-README.md
-Security Features Implemented
+```text
+Clients requested: 10
+Clients connected: 10
+Connection success rate: 100.0%
 
-Layer 1:
+Total test duration: 1.492 seconds
+Average connection latency: 0.0699 seconds
+Maximum connection latency: 0.1586 seconds
+Minimum connection latency: 0.0076 seconds
 
-SSL/TLS socket encryption
+Server handled full load successfully.
+```
 
-Layer 2:
+---
 
-Application-layer symmetric encryption (Fernet)
+# Wireshark Security Validation
 
-Protects:
+When the traffic is captured in Wireshark:
 
-room messages
-private messages
-secret messages
-file transfer streams
-Future Improvements
+- TLS handshake packets are visible
+- Chat messages appear as:
+  - `TLS Application Data`
+- No plaintext chat content is visible
 
-Possible extensions:
+This confirms that SSL/TLS encryption is working correctly.
 
-GUI client interface
-persistent message storage
-database-based authentication
-UDP fast messaging mode
-async server architecture
-group-level encryption keys
-Authors
+---
 
-Computer Networks Mini Project
-Secure Multi-Room Chat System with Performance Evaluation and SSL Encryption
+
+# Learning Outcomes
+
+By building this project, you learn:
+
+- How TCP sockets work
+- How to build a client-server architecture
+- Multi-threading in Python
+- Secure communication with SSL/TLS
+- Encryption using Fernet
+- Designing custom communication protocols
+- Handling multiple clients concurrently
+- Debugging network applications using Wireshark
+
+---
+
+# Author
+
+**K R Manoj , Kushi P , Mohammed Arfan Asgar**
+
+
+---
+
+# License
+
+This project is created for academic and educational purposes.
+
+---
+
+# ⭐ If You Like This Project
+
+If you found this project useful, consider giving the repository a star ⭐ on GitHub.
