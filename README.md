@@ -309,7 +309,7 @@ By building this project, you learn:
 
 # Author
 
-**K R Manoj , Kushi P , Mohammed Arfan Asgar**
+**K R Manoj , Khushi Patel , Mohammed Arfan Asgar**
 
 
 ---
